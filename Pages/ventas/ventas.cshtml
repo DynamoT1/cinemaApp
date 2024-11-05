@@ -1,0 +1,139 @@
+@page "{idPelicula:int}"
+@model Cinema.Pages.VentasModel
+@{
+    ViewData["Title"] = "Comprar Boletos";
+}
+<section class="mb-12">
+    <div class="min-h-screen bg-gray-50">
+        <div class="max-w-4xl mx-auto p-4">
+            @if (TempData["MensajeVenta"] != null)
+            {
+                var tipoMensaje = TempData["TipoMensaje"]?.ToString();
+                var mensaje = TempData["MensajeVenta"]?.ToString();
+                <div class="mb-4 p-4 rounded-lg @(tipoMensaje == "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                    @mensaje
+                </div>
+            }
+
+            <!-- Header -->
+            <div class="flex items-center space-x-4 mb-8">
+                <a href="/" class="text-gray-600 hover:text-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </a>
+                <h1 class="text-2xl font-semibold">Selecciona tus boletos</h1>
+            </div>
+
+            <form method="post">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Ticket Selection -->
+                    <div class="md:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <h3 class="font-medium">Boletos para @Model.Pelicula.nombrePeli</h3>
+                                    <p class="text-red-500"></p>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <button type="button" class="border rounded-md p-2" onclick="updateQuantity(-1)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                        </svg>
+                                    </button>
+                                    <span class="w-8 text-center text-xl" id="quantity-0">0</span>
+                                    <button type="button" class="border rounded-md p-2" onclick="updateQuantity(1)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="input-quantity-0" name="cantidadBoletos"/>
+                            <input type="hidden" id="input-precio-total" name="precioTotal" value="0"/>
+                            <input type="hidden" name="pelicula" value="@Model.Pelicula.nombrePeli"/>
+                        </div>
+                        <p class="text-sm text-gray-500">
+                            Los boletos son válidos únicamente para el día y horario seleccionado. No se realizarán reembolsos ni cambios de horarios una vez realizada la compra.
+                        </p>
+                    </div>
+
+                    <!-- Movie Details -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="aspect-[2/3] relative mb-4">
+                            <img src="@Model.Pelicula.imgURL" alt="@Model.Pelicula.nombrePeli" class="rounded-lg object-cover w-full h-full" />
+                        </div>
+                        <h2 class="text-xl font-semibold mb-2">@Model.Pelicula.nombrePeli</h2>
+                        <div class="space-y-2 text-gray-600">
+                            <p>@Model.Pelicula.duracion</p>
+                        </div>
+                        <div id="total-section" name="precioTotal" class="hidden mt-6 pt-4 border-t">
+                            <div class="flex justify-between text-lg font-semibold">
+                                <span>Total:</span>
+                                <span id="total-amount">$0.00</span>
+                            </div>
+                            <button type="submit" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- campo para el nombre del cliente -->
+                <div class="mt-4">
+                    <label for="nombreCliente" class="block text-sm font-medium text-gray-700">Nombre del Cliente:</label>
+                    <input type="text" id="nombreCliente" name="nombreCliente" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Ingresa tu nombre" />
+                </div>
+
+                <!-- Campo para seleccionar el método de pago -->
+                <div class="mt-4">
+                    <label for="metodoPagoSelect" class="block text-sm font-medium text-gray-700">Método de Pago:</label>
+                    <select id="metodoPagoSelect" name="metodoPago" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                        <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                        <option value="PayPal">PayPal</option>
+                        <option value="Efectivo">Efectivo</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+    @section Scripts {
+        <script>
+            function updateQuantity(increment) {
+                const quantityElement = document.getElementById('quantity-0');
+                const inputQuantityElement = document.getElementById('input-quantity-0');
+                const inputTotalPriceElement = document.getElementById('input-precio-total');
+
+                let quantity = parseInt(quantityElement.textContent) + increment;
+                quantity = Math.max(0, quantity); // No permitir valores negativos
+                quantityElement.textContent = quantity;
+                inputQuantityElement.value = quantity;
+
+                const ticketPrice = 70; // Define el precio del boleto
+                const total = quantity * ticketPrice;
+                inputTotalPriceElement.value = total; // Actualiza el precio total
+            updateTotal(total);
+        }
+
+        function updateTotal(total) {
+            const totalSection = document.getElementById('total-section');
+            const totalAmount = document.getElementById('total-amount');
+
+            if (total > 0) {
+                totalSection.classList.remove('hidden');
+                totalAmount.textContent = `$${total.toFixed(2)}`;
+            } else {
+                totalSection.classList.add('hidden');
+            }
+        }
+
+        // Redirigir a la página principal después de 5 segundos si la venta fue exitosa
+        if ("@TempData["TipoMensaje"]".toLowerCase() === "success") {
+            setTimeout(function() {
+                window.location.href = '/Index'; 
+            }, 5000); 
+        }
+    </script>
+}

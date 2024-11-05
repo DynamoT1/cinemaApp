@@ -1,0 +1,23 @@
+# Ignorar archivos de configuración de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos de dependencias de Node.js
+node_modules/
+npm-debug.log
+
+# Ignorar archivos de compilación de C#
+bin/
+obj/
+
+# Ignorar archivos de entorno
+.env
+
+# Ignorar archivos de caché de IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignorar directorios de pruebas
+/tests/
